@@ -40,7 +40,7 @@ export const FoodWrapper = ({
   onClickFoodWrapper,
   imageUrl,
 }) => (
-  <Wrapper onClick={() => onClickFoodWrapper(food)}>
+  <Wrapper onClick={() => onClickFoodWrapper()}>
     <FoodDetail>
       {food.name}
       <DescriptionWrapper>
