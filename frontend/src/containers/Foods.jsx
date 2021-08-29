@@ -33,157 +33,162 @@ const HeaderWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   padding: 8px 32px;
-  `;
+`;
 
 const BagIconWrapper = styled.div`
   padding-top: 24px;
-  `;
+`;
 
 const ColoredBagIcon = styled(LocalMallIcon)`
   color: ${COLORS.MAIN};
-  `;
+`;
 
 const MainLogoImage = styled.img`
   height: 90px;
-  `;
+`;
 
 const FoodsList = styled.div`
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
   margin-bottom: 50px;
-  `;
+`;
 
 const ItemWrapper = styled.div`
   margin: 16px;
 `;
 
-export const Foods = ({match}) => {
-  const initialState = {
-    isOpenOrderDialog: false,
+const initialState = {
     selectedFood: null,
     selectedFoodCount: 1,
     isOpenNewOrderDialog: false,
     existingRestaurantName: '',
     newRestaurantName: '',
   };
+
+export const Foods = ({ match }) => {
   const [state, setState] = useState(initialState);
+  const [isOpenOrderDialog, setIsOpenOrderDialog] = useState(false);
   const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
   const history = useHistory();
 
   useEffect(() => {
     dispatch({ type: foodsActionTypes.FETCHING });
-    fetchFoods(match.params.restaurantsId)
-    .then((data) => {
+    fetchFoods(match.params.restaurantsId).then((data) => {
       dispatch({
         type: foodsActionTypes.FETCH_SUCCESS,
         payload: {
-          foods: data.foods
-        }
+          foods: data.foods,
+        },
       });
-    })
-  }, [match.params.restaurantsId])
+    });
+  }, [match.params.restaurantsId]);
 
   const submitOrder = () => {
     postLineFoods({
       foodId: state.selectedFood.id,
       count: state.selectedFoodCount,
-    }).then(() => history.push('/orders'))
-    .catch((e) => {
-      if(e.response.status === HTTP_STATUS_CODE.NOT_ACCEPTABLE){
-        setState({
-          ...state,
-          isOpenOrderDialog: false,
-          isOpenNewOrderDialog: true,
-          existingRestaurantName: e.response.data.existing_restaurant,
-          newRestaurantName: e.response.data.new_restaurant,
-        })
-      } else {
-        throw e;
-      }
     })
+      .then(() => history.push('/orders'))
+      .catch((e) => {
+        if (e.response.status === HTTP_STATUS_CODE.NOT_ACCEPTABLE) {
+          setState({
+            ...state,
+            isOpenNewOrderDialog: true,
+            existingRestaurantName: e.response.data.existing_restaurant,
+            newRestaurantName: e.response.data.new_restaurant,
+          });
+          setIsOpenOrderDialog(false);
+        } else {
+          throw e;
+        }
+      });
   };
 
   const replaceOrder = () => {
     replaceLineFoods({
       foodId: state.selectedFood.id,
       count: state.selectedFoodCount,
-    }).then(() => history.push('/orders'))
-  }
+    }).then(() => history.push('/orders'));
+  };
 
   return (
     <Fragment>
       <HeaderWrapper>
-        <Link to='/restaurants'>
-          <MainLogoImage src={MainLogo} alt='main logo' />
+        <Link to="/restaurants">
+          <MainLogoImage src={MainLogo} alt="main logo" />
         </Link>
         <BagIconWrapper>
-          <Link to='/orders'>
-            <ColoredBagIcon fontSize='large' />
+          <Link to="/orders">
+            <ColoredBagIcon fontSize="large" />
           </Link>
         </BagIconWrapper>
       </HeaderWrapper>
       <FoodsList>
-        {
-          foodsState.fetchState === REQUEST_STATE.LOADING ?
-            <Fragment>
-              {
-                [...Array(12).keys()].map(i =>
-                  <ItemWrapper key={i}>
-                    <Skeleton key={i} variant='rect' width={450} height={180} />
-                  </ItemWrapper>
-                )
-              }
-            </Fragment>
-          :
-            foodsState.foodsList.map(food =>
-              <ItemWrapper key={food.id}>
-                <FoodWrapper
-                  food={food}
-                  // フードitemクリック時にsetStateする
-                  onClickFoodWrapper={(food) => setState({
+        {foodsState.fetchState === REQUEST_STATE.LOADING ? (
+          <Fragment>
+            {[...Array(12).keys()].map((i) => (
+              <ItemWrapper key={i}>
+                <Skeleton key={i} variant="rect" width={450} height={180} />
+              </ItemWrapper>
+            ))}
+          </Fragment>
+        ) : (
+          foodsState.foodsList.map((food) => (
+            <ItemWrapper key={food.id}>
+              <FoodWrapper
+                food={food}
+                // フードitemクリック時にsetStateする
+                onClickFoodWrapper={() => {
+                  setIsOpenOrderDialog(true);
+                  setState({
                     ...state,
                     selectedFood: food,
                     isOpenOrderDialog: true,
-                  })}
-                  imageUrl={FoodImage}
-                />
-              </ItemWrapper>
-            )
-        }
+                  });
+                }}
+                imageUrl={FoodImage}
+              />
+            </ItemWrapper>
+          ))
+        )}
       </FoodsList>
-      {
-        state.isOpenOrderDialog &&
-          <FoodOrderDialog
-            isOpen={state.isOpenOrderDialog}
-            food={state.selectedFood}
-            countNumber={state.selectedFoodCount}
-            onClickCountUp={() => setState({
+      {isOpenOrderDialog && (
+        <FoodOrderDialog
+          isOpen={isOpenOrderDialog}
+          food={state.selectedFood}
+          countNumber={state.selectedFoodCount}
+          onClickCountUp={() =>
+            setState({
               ...state,
               selectedFoodCount: state.selectedFoodCount + 1,
-            })}
-            onClickCountDown={() => setState({
+            })
+          }
+          onClickCountDown={() =>
+            setState({
               ...state,
               selectedFoodCount: state.selectedFoodCount - 1,
-            })}
-            onClickOrder={() => submitOrder()}
-            onClose={() => setState({
+            })
+          }
+          onClickOrder={() => submitOrder()}
+          onClose={() => {
+            setIsOpenOrderDialog(false);
+            setState({
               ...state,
-              isOpenOrderDialog: false,
               selectedFood: null,
               selectedFoodCount: 1,
             })}
-          />
-      }
-      {
-        state.isOpenNewOrderDialog &&
-        <NewOrderConfirmDialog
-        isOpen={state.isOpenNewOrderDialog}
-        onClose={() => setState({ ...state, isOpenNewOrderDialog: false})}
-        existingRestaurantName={setState.newRestaurantName}
-        onClickSubmit={() => replaceOrder()}
+          }
         />
-      }
+      )}
+      {state.isOpenNewOrderDialog && (
+        <NewOrderConfirmDialog
+          isOpen={state.isOpenNewOrderDialog}
+          onClose={() => setState({ ...state, isOpenNewOrderDialog: false })}
+          existingRestaurantName={setState.newRestaurantName}
+          onClickSubmit={() => replaceOrder()}
+        />
+      )}
     </Fragment>
-  )
-}
+  );
+};
