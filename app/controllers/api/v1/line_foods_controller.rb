@@ -15,7 +15,7 @@ class Api::V1::LineFoodsController < ApplicationController
       end
 
       render json: {
-        line_food_ids: line_food_ids
+        line_food_ids: line_food_ids,
         restaurant: line_foods[0].restaurant,
         count: count,
         amount: amount,
