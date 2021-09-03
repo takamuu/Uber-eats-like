@@ -156,7 +156,7 @@ DEPENDENCIES
   bootsnap (>= 1.4.4)
   byebug
   listen (~> 3.3)
-  pg
+  pg (~> 1.1)
   pry-rails
   puma (~> 5.0)
   rack-cors
