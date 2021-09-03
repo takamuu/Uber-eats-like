@@ -66,11 +66,15 @@ const initialState = {
     newRestaurantName: '',
   };
 
+const initialCount = 0 ;
+
 export const Foods = ({ match }) => {
   const [state, setState] = useState(initialState);
   const [isOpenOrderDialog, setIsOpenOrderDialog] = useState(false);
   const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
   const history = useHistory();
+  const [count, setCount] = useState(initialCount)
+  // console.log(count, setCount);
 
   useEffect(() => {
     dispatch({ type: foodsActionTypes.FETCHING });
@@ -114,6 +118,12 @@ export const Foods = ({ match }) => {
 
   return (
     <Fragment>
+      <div>
+        Count: {count}
+        <button onClick={() => setCount(0)}>Reset</button>
+        <button onClick={() => setCount(prevCount => prevCount - 1)}>-</button>
+        <button onClick={() => setCount(prevCount => prevCount + 1)}>+</button>
+     </div>
       <HeaderWrapper>
         <Link to="/restaurants">
           <MainLogoImage src={MainLogo} alt="main logo" />
