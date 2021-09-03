@@ -12,20 +12,23 @@
 
 ActiveRecord::Schema.define(version: 2021_07_16_072728) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "foods", force: :cascade do |t|
-    t.integer "restaurant_id", null: false
-    t.string "name", null: false
-    t.integer "price", null: false
-    t.text "description", null: false
+    t.bigint "restaurant_id", null: false, comment: "所属するレストランID"
+    t.string "name", null: false, comment: "フードの名前"
+    t.integer "price", null: false, comment: "フードの価格"
+    t.text "description", null: false, comment: "フードの説明文"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["restaurant_id"], name: "index_foods_on_restaurant_id"
   end
 
   create_table "line_foods", force: :cascade do |t|
-    t.integer "food_id", null: false
-    t.integer "restaurant_id", null: false
-    t.integer "order_id"
+    t.bigint "food_id", null: false
+    t.bigint "restaurant_id", null: false
+    t.bigint "order_id"
     t.integer "count", default: 0, null: false
     t.boolean "active", default: false, null: false
     t.datetime "created_at", precision: 6, null: false
